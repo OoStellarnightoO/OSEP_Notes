@@ -44,4 +44,5 @@ Remember to change whatever that is in the buf variable to the shellcode generat
 
 - With Sleep Function to dodge Heuristics detection
 - With single byte XOR encryption of shellcode
+- Need to XOR your shellcode with the ![XOR_Helper](..\XOR_Encoder_Helper\xor_encoder.cs) courtesy of https://github.com/chvancooten/OSEP-Code-Snippets/blob/main/XOR%20Shellcode%20Encoder/Program.cs
 
