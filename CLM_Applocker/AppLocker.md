@@ -56,3 +56,9 @@ for /F %A in (C:\temp\icacls.txt) do ( cmd.exe /c icacls "%~A" 2>nul | findstr /
 
 ## Via ADS
 
+
+
+##  Via God-Tier Meterpreter's Post Exploit Module Execute dotner Assembly
+
+https://github.com/rapid7/metasploit-framework/blob/master/documentation/modules/post/windows/manage/execute_dotnet_assembly.md
+
