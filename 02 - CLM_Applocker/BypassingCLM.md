@@ -35,7 +35,7 @@ powershell.exe -Version 2.0 -Command {<scriptblock>} -ExecutionPolicy <Execution
 
 ```csharp
 using System;
-using System.Management.Automation;
+using System.Management.Automation; //can be found in C:/Windows/Microsoft.NET/Assembly/GAC_MSIL/....
 using System.Management.Automation.Runspaces;
 using System.Configuration.Install;
 

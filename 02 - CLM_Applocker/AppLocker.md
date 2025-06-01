@@ -79,7 +79,7 @@ set ARGUMENTS -c ALL --outputdirectory C:\Users\Public
 
 ## Interactive CInstaller Bypassess AMSI
 
-- Use with InstallUtil
+- Use with InstallUtil. This grants you a runspace to execute powershell in full CLM
 
 ```powershell
 using System;
