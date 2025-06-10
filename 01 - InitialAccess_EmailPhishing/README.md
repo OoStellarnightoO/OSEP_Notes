@@ -33,7 +33,7 @@ self.close();
 </body>
 </html>
 ```
-run.txt here > ![]()
+![run.txt here](https://github.com/OoStellarnightoO/OSEP_Notes/blob/main/99%20-%20Misc%20Stuff/PS_Nishang_OneLiner_RevShell.ps1)
 
 For run.txt, you can also Base64 Encode it but if you are using cyberchef, remember to Encode Text (UTF-16 LE) recipe before Base64 encode recipe!
 ![alt text](image.png)
