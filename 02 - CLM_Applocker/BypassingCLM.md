@@ -174,3 +174,5 @@ namespace test
     }
 }
 ```
+
+https://github.com/Ezan0x/LigoloAppLockerEvasion
