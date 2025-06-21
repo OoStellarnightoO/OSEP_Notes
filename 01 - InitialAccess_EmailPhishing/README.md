@@ -163,6 +163,7 @@ public class TestClass
 
         int size = buf.Length;
 ```
+- If you are having "Error: Loading Assembly Information" when running DOTNET2JS, switch off your defender.
 - when your evil.js is created, open it and slam the following code at the top:
 - Note you may need to obfuscare the AmsiEnable code block through some simple string manipulation like below
 ```js
