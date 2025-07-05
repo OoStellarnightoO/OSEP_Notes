@@ -1,6 +1,6 @@
 # Initial Access via Phishing
 
-This is for Microsoft Office Word. We assume we are using meterpreter to catch the shell and we will be generating payloads according to the Windows Office version present on the victim. Generally x86 for Office 2016 and x64 for Office 2021/365
+This is for Microsoft Office Word. We assume we are using meterpreter to catch the shell and we will be generating payloads according to the Windows Office version present on the victim. **Generally x86 for Office 2016 and x64 for Office 2021/365**
 
 We start with the simplest payload which is to create a direct VBA shellcode runner with no obfuscation and then escalate accordingly with obfuscation, powershell and C# usage.
 
