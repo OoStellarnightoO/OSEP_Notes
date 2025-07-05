@@ -2,6 +2,8 @@
 
 This is for Microsoft Office Word. We assume we are using meterpreter to catch the shell and we will be generating payloads according to the Windows Office version present on the victim. **Generally x86 for Office 2016 and x64 for Office 2021/365**
 
+**Important thing to note that if you gain a shell via doc phishing, you are likely operating in a x86 process. If you need to bypass UAC through fodhelper, you need to find a way to upgrade to a 64-bit process (via migration or popping another shell)**
+
 We start with the simplest payload which is to create a direct VBA shellcode runner with no obfuscation and then escalate accordingly with obfuscation, powershell and C# usage.
 
 [Round 1: The Simple Direct VBA Shellcode Runner]()
