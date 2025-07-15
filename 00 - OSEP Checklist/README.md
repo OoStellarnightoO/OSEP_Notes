@@ -15,6 +15,11 @@
 	- file upload pages to be tested
 	- If there are two or more webservices on the same host (especially if one is like 80 or 8080) and there is a fileupload vector, one should test for path traversal when uploading files. It might be that it is possible to gain file execution only via the port 80 service. 
 		- see if you can influence the upload path either by DIRECTLY CHANGING the NAME of the file (..\..\..\..\..\inetpub\wwwroot\evil.aspx) or burpsuite-ing it
+		- if apache and all the usual .php substitutes are rejected, try uploading a .htaccess file that grants you php execution on a custom extension; and then rename your evil.php to evil.xyz and upload
+		```bash
+		# create .htaccess file with the following string
+		AddType application/x-httpd-php .xyz
+		```
 	- If you are able to get a .db file from the web service, see if it changes when things are uploaded to the webserver
 - DevOps stuff like gitlab, Ansible, Artifactory should be noted down as they will likely play a part further on
 - If there are fields for user input, please try SQL Injection, SSTI payloads (Esp if it is powered by ASP.NET Razor). SQLMap can be very useful. For SSTI payloads, run the following:
