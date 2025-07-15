@@ -201,7 +201,7 @@ msiexec /quiet /qn /i evil.msi
 
 **Via MSI Wrapper**
 - You need to have your own Windows machine. Download MSI Wrapper from (https://www.exemsi.com/download/)
-- Create an obfuscated exe payload that can bypass AV. Suggest a XOR Csharp payload
+- Create an obfuscated exe payload that can bypass AV. Suggest a XOR Csharp payload or a Process Hollowing payload (this works. Tested and tried)
 - Wrap that payload using MSI Wrapper. See here for steps >>
 
 ### Special Domain Groups
