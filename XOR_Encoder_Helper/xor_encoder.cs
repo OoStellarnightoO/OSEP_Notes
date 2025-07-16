@@ -120,6 +120,30 @@ namespace XorCoder
             {
                 buf[i] = (byte)((uint)buf[i] ^ 0xfa);
             }
+
+            Sub XOR_Decode()
+    Dim b_() As Byte
+    ' Example input in decimal — replace with your actual values
+    b_ = Array(18, 52, 86, 120, 154, 188)
+
+    Dim k_(2) As Byte
+    k_(0) = 171   ' 0xAB
+    k_(1) = 187   ' 0xBB
+    k_(2) = 252   ' 0xFC
+
+    Dim i As Long
+    For i = 0 To UBound(b_)
+        b_(i) = b_(i) Xor k_(i Mod 3)
+    Next i
+
+    ' Optional: Output decoded bytes (as decimal or characters)
+    Dim output As String
+    For i = 0 To UBound(b_)
+        output = output & b_(i) & " "
+    Next i
+    MsgBox "Decoded (decimal): " & output
+End Sub
+
             */
 
         }
