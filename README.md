@@ -1,2 +1,6 @@
 # OSEP_Notes
-Collection of OSEP Notes and Payloads
+
+This set of notes were used for my OSEP exam taken on July 2025. 
+
+|
+|-----------|

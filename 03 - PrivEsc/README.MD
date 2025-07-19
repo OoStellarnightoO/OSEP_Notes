@@ -19,6 +19,11 @@ Execution on victim
 msiexec.exe /quiet /qn /i evil.msi
 ```
 
+### Via MSIWrapper
+
+- Download from https://www.exemsi.com/download/
+- Create an obfuscated C# shellcode runner and compile as exe and then pass it to the program
+
 ![alt text](image.png)
 
 ![alt text](image-1.png)
