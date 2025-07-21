@@ -32,8 +32,7 @@ A famous and convenient repo for OSEP. This is a good starting point and is ofte
 
 **Invoke-PSObfuscation**
 
-Singlehandedly the most important tool I discovered for the OSEP. Obfuscates your powershell shellcode and gets pass OSEP AV....100% of the time if you can get the host to execute powershell scripts.
-Almost feels like cheating and makes bypassing OSEP AV trivial
+Singlehandedly the most important tool I discovered for the OSEP. Obfuscates your powershell shellcode and gets past AV if you can get the host to execute powershell scripts.
 
 In particular, I made great use of the Get-ShellCode repo referred to in the repo for my powershell shellcode runner
 
